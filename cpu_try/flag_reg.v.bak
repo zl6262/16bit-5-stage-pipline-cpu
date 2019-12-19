@@ -1,0 +1,5 @@
+module flag_reg(
+		input	wire clk,
+		input wire rst,
+		input wire c_in;
+);

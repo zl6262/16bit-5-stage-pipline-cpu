@@ -1,0 +1,1 @@
+Warning (10268): Verilog HDL information at divide.v(25): always construct contains both blocking and non-blocking assignments File: G:/cpu_try/divide.v Line: 25

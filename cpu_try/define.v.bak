@@ -1,0 +1,48 @@
+//全局宏定义
+`define RstEnable 	1'b1 //复位信号有效
+`define RstDisable 	1'b0 //复位信号无效
+`define ZeroHalfWord 16'h0000 
+`define WriteEnable 	1'b1
+`define WriteDisable 1'b0
+`define ReadEnable  	1'b1
+`define ReadDisable 	1'b0
+`define AluOpBus 		7:0 //译码阶段的输出aluop_o的宽度
+`define AluSelBus 	2:0 //译码阶段的输出alusel_o的宽度 
+`define InstValid 	1'b1
+`define InstInvalid 	1'b0
+`define True_v 		1'b1
+`define False_v 		1'b0
+`define ChipEnable 	1'b1
+`define ChipDisable 	1'b0
+/*PC指令寄存器有关的宏定义*/
+`define InstAddrBus  15:0
+`define InstBus      15:0
+
+
+/*通用寄存器组有关的宏定义*/
+`define RegAddrBus  	3:0  //通用寄存器组的地址线宽度，因为定义16个寄存器
+`define RegBus			15:0 //通用寄存器组的数据线宽度
+`define RegWidth 		16   //通用寄存器宽度
+`define DoubleRegWidth	32  //两倍的通用寄存器的宽度
+`define DoubleRegBus		31:0 //两倍的通用寄存器的数据线宽度
+`define RegNum 		16    //通用寄存器的数量
+`define RegNumLog2	4    //通用寄存器寻址所需要的地址位数
+`define NOPRegAddr	4'b0000  
+
+
+/*指令执行的宏定义*/
+`define EXE_ADD	8'b00000000
+`define EXE_SUB	8'b00000001
+`define EXE_DEC	8'b00000010
+`define EXE_OR		8'b00001000
+`define EXE_NOP	8'b11000000
+//ALUOP
+`define EXE_DEC_OP 8'b00000010
+`define EXE_OR_OP	8'b00100101
+`define EXE_NOP_OP	8'b0000000
+`define EXE_RES_LOGIC	3'b001
+`define EXE_RES_NOP		3'b000	
+
+// ROM
+`define InstNum	1024	//rom实际大小1kb
+`define	InstMemNumLog2	10//ROM实际使用的地址总线宽度
