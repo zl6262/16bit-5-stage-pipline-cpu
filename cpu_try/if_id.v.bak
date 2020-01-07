@@ -1,0 +1,26 @@
+/*if_id暂时保存取指阶段获得的指令，以及对应的指令地址，并在下一个时钟传递到译码阶段
+*/
+`include"define.v"
+module if_id(
+	input wire clk,
+	input wire rst,
+	input wire [`InstAddrBus] if_pc,    //InstAddrBus 为地址总线宽度
+	input wire [`InstBus]     if_inst,  //InstBus为指令总线的宽度
+	output reg [`InstAddrBus] id_pc,
+	output reg [`InstBus]     id_inst
+	);
+
+always@(posedge clk)
+begin 
+	if(rst==`RstEnable)
+		begin
+		id_pc<=`ZeroHalfWord; //复位时pc为0
+		id_inst<=`ZeroHalfWord; //复位时候指令为0 空指令
+		end
+	else
+		begin
+		id_pc<=if_pc;             //向id传递if阶段的值
+		id_inst<=if_inst;
+		end
+end
+endmodule 

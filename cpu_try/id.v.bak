@@ -1,0 +1,118 @@
+`include"define.v"
+module id(
+	input wire 							rst,
+	input wire[`InstAddrBus] 		pc_i,  		//译码阶段的指令对应的地址
+	input wire[`InstBus]				inst_i,		//译码阶段的指令
+//从通用寄存器读取的值
+	input wire[`RegBus]				reg1_data_i, //寄存器组 读端口1 的输入数据
+	input wire[`RegBus]				reg2_data_i, 	//寄存器        2
+//写入通用寄存器的值
+	output reg 							reg1_read_o, 	//寄存器组 读端口1 的使能信号
+	output reg							reg2_read_o,	//					2
+	output reg[`RegAddrBus]			reg1_addr_o,	//寄存器组	 读端口1的地址选择信号
+	output reg[`RegAddrBus]			reg2_addr_o,
+//送到执行阶段的信息
+	output reg[`AluOpBus]			aluop_o,			//译码阶段的指令要进行运算的子类型
+	output reg[`AluSelBus]			alusel_o,		//译码阶段的指令要进行运算的类型
+	output reg[`RegBus]				reg1_o,			//译码阶段的指令要进行运算的源操作数1
+	output reg[`RegBus]				reg2_o,			//                           2
+	output reg[`RegAddrBus]			wd_o,				//译码阶段的指令要写入的目的寄存器地址
+	output reg 							wreg_o			//译码阶段的指令是否有要写入的目的寄存器
+);
+//获得指令的指令码
+wire[7:0] op  = inst_i[15:8];   //8位操作码
+wire[3:0] op1 = inst_i[7:4];
+wire[3:0] op2 = inst_i[3:0];
+//保存指令中的立即数
+reg[`RegBus] imm;           
+
+//指令是否有效
+reg instvalid;
+
+/********************——1——指令译码*********************/
+always @(*) begin
+	if(rst==`RstEnable) begin
+		aluop_o		<=		`EXE_NOP_OP;
+		alusel_o		<=		`EXE_RES_NOP;
+		wd_o			<=		`NOPRegAddr;
+		wreg_o		<=		`WriteDisable;
+		instvalid   <= 	`InstValid;
+		reg1_read_o	<=		1'b0;
+		reg2_read_o	<=		1'b0;
+		reg1_addr_o	<=		`NOPRegAddr;
+		reg2_addr_o	<=		`NOPRegAddr;
+		imm			<=		16'h0;
+		end
+	else begin
+		aluop_o		<=		`EXE_NOP_OP;
+		alusel_o		<=		`EXE_RES_NOP;
+		wd_o			<=		inst_i[7:4];    //写入寄存器的序号 
+		wreg_o		<=		`InstInvalid;
+		reg1_read_o <=		1'b0;
+		reg2_read_o <=		1'b0;  
+		reg1_addr_o	<=		inst_i[7:4];		//DR寄存器
+		reg2_addr_o	<=		inst_i[3:0];		//SR寄存器
+		imm <= `ZeroHalfWord;
+		case(op)
+			`EXE_OR:	begin
+							wreg_o	<=`WriteEnable;
+							aluop_o	<=`EXE_OR_OP;		//运算子类型是或运算
+							alusel_o	<=`EXE_RES_LOGIC;	//运算类型是逻辑运算4
+							reg1_read_o	<=	1'b1;
+							reg2_read_o	<=	1'b1;
+					//		imm	<=	{16'h0,inst_i[15:0]};
+							wd_o	<=	inst_i[7:4];  		//[7:4]为目的寄存器
+							instvalid	<=	`InstValid;
+							end
+			`EXE_DEC: begin
+							wreg_o	<=`WriteEnable;
+							aluop_o	<=`EXE_DEC_OP;
+							alusel_o	<=`EXE_RES_LOGIC;
+							reg1_read_o	<=	1'b1;
+							reg2_read_o	<=	1'b0;
+							imm	<=	1'b1;
+							wd_o	<=	inst_i[7:4];
+							instvalid	<=	`InstValid;
+							end
+			default:	begin
+						end
+			
+		endcase
+	end
+end
+
+/*                    确定源操作数1           */
+always @(*) begin
+	if(rst==`RstEnable) begin
+		reg1_o<=`ZeroHalfWord;
+		end
+	else if(reg1_read_o == 1'b1)	begin
+			reg1_o<=reg1_data_i; //寄存器组 读端口1 的输出值
+			end
+	else if(reg1_read_o == 1'b0) 	begin
+			reg1_o<=imm;         //立即数  如果立即数不参与运算，则在译码阶段将立即数置零
+			end
+	else	begin
+			reg1_o<=`ZeroHalfWord;
+			end
+end
+
+
+
+/*                 确定源操作数2             */
+always @(*) begin
+	if(rst==`RstEnable) begin
+		reg2_o<=`ZeroHalfWord;
+		end
+	else if(reg2_read_o == 1'b1)	begin
+		reg2_o<=reg2_data_i;    //寄存器组  读端口2 的输出值
+		end
+	else if(reg2_read_o ==1'b0)	begin
+		reg2_o<=imm;
+		end
+	else begin
+		reg2_o<=`ZeroHalfWord;
+		end
+	end
+
+endmodule 

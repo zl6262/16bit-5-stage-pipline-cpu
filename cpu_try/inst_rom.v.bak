@@ -1,0 +1,22 @@
+`include"define.v"
+module inst_rom(
+	input wire 		ce,
+	input wire[`InstAddrBus]	addr,
+	output reg[`InstBus]			inst
+);
+
+//定义一个数组，大小为INStNUM，元素宽度为INnstBus
+	reg[`InstBus]	inst_mem[0:`InstNum-1];
+	//使用文件Inst)rom.data初始化指令存储器
+	initial $readmemh ("inst_rom.txt",inst_mem);
+	//当复位信号无效时，依据输入的地址，输出指令存储器rom中的对应元素
+	always@(*)	begin
+		if(ce==`ChipDisable)	begin
+			inst	<=	`ZeroHalfWord;
+			end
+		else	begin
+			inst	<=inst_mem[addr[`InstMemNumLog2+1:1]];//一个地址对应两个字节数据，所以从第二位开始
+		end
+	end
+	
+endmodule 

@@ -1,0 +1,43 @@
+`include"define.v"
+module ex(
+	input	wire rst,
+// 译码阶段传输到执行阶段的信息
+	input wire[`AluOpBus]	aluop_i,
+	input wire[`AluSelBus]	alusel_i,
+	input wire[`RegBus]		reg1_i,
+	input wire[`RegBus]		reg2_i,
+	input wire[`RegAddrBus]	wd_i,
+	input wire					wreg_i,
+	
+//执行的结果
+	output reg[`RegAddrBus]	wd_o,
+	output reg					wreg_o,
+	output reg[`RegBus]		wdata_o
+);
+	
+//保存逻辑运算的结果
+reg[`RegBus] logicout;
+
+/*                根据aluop_i指示的运算子类型进行运算，  逻辑或 运算         */
+always @(*)	begin
+	if(rst == `RstEnable)	begin logicout<=`ZeroHalfWord; 	end
+	else	begin
+		case(aluop_i)
+			`EXE_OR_OP:	begin	logicout <= reg1_i | reg2_i;	end
+			`EXE_DEC_OP:begin	logicout	<=	reg1_i -	reg2_i;	end
+				default:	begin logicout <= `ZeroHalfWord;		end
+				
+		endcase
+	end
+end
+
+/*                  根据alusel_i指示的运算类型，选择一个运算结果作为最终结果    */
+always@(*)	begin
+	wd_o	<=	wd_i;           //要写入的寄存器地址
+	wreg_o	<=	wreg_i;		//是否要写入寄存器
+	case(alusel_i)
+		`EXE_RES_LOGIC:	begin wdata_o<=logicout;		end 
+				 default:	begin	wdata_o<=`ZeroHalfWord;	end
+	endcase
+end
+endmodule 
